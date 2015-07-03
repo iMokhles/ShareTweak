@@ -68,7 +68,7 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
 	 UIBarButtonItem *button_;
 }
 - (void) _customButtonClicked;
-- (void)shareTweakInfo;
+- (void)shareTweakInfo:(NSArray *)inforArray;
 - (void)newCustomAction;
 @end
 
@@ -106,15 +106,24 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
             origButtonTitle = UCLocalize("REMOVE");
 	}
 
+	// Share info
+	__block NSString *shareText = [NSString stringWithFormat:@"#Share_Tweak Tweak Name: %@\nShort Description: %@\nAuthor: %@\n Source: %@\n Type: %s", package.name, package.shortDescription, package.author.name, source.name, commercial ? "Paid" : "Free"];
+	NSURL *depictionURL = [NSURL URLWithString:@""];
+	if (package.depiction != nil)
+		depictionURL = [NSURL URLWithString:package.depiction];
+
 	[UIAlertView showWithTitle:@"ShareTweak"
                    message:[NSString stringWithFormat:@"Share %@ info with others", package.name]
          cancelButtonTitle:@"Cancel"
-         otherButtonTitles:@[@"Share", origButtonTitle]
+         otherButtonTitles:@[@"Share", @"Share URL", origButtonTitle]
                   tapBlock:^(UIAlertView *alertView, NSInteger buttonIndex) {
                       if (buttonIndex == [alertView cancelButtonIndex]) {
                           NSLog(@"Cancelled");
                       } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Share"]) {
-                          [self shareTweakInfo];
+                          [self shareTweakInfo:[NSArray arrayWithObjects:shareText, depictionURL, package.icon, nil]];
+                      } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Share URL"]) {
+                      	  shareText = [NSString stringWithFormat:@"#Share_Tweak Tweak Name: %@\nDepiction:", package.name];
+                          [self shareTweakInfo:[NSArray arrayWithObjects:shareText, depictionURL, package.icon, nil]];
                       } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:origButtonTitle]) {
                           [self _customButtonClicked];
                       }
@@ -122,16 +131,9 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
 }
 // needs to grab Tweak price
 %new
-- (void)shareTweakInfo {
-	Package *package = MSHookIvar<Package *>(self, "package_");
-	Source *source = MSHookIvar<Source *>(package, "source_");
-	BOOL commercial = MSHookIvar<BOOL>(self, "commercial_");
+- (void)shareTweakInfo:(NSArray *)inforArray {
 
-	NSString *shareText = [NSString stringWithFormat:@"#Share_Tweak Tweak Name: %@\nShort Description: %@\nAuthor: %@\n Source: %@\n Type: %s", package.name, package.shortDescription, package.author.name, source.name, commercial ? "Paid" : "Free"];
-	NSURL *depictionURL = [NSURL URLWithString:package.depiction];
-
-	UIActivityViewController *actViewController = [[UIActivityViewController alloc] initWithActivityItems:[NSArray arrayWithObjects:shareText, depictionURL, package.icon, nil] applicationActivities:nil];
+	UIActivityViewController *actViewController = [[UIActivityViewController alloc] initWithActivityItems:inforArray  applicationActivities:nil];
 	[self presentViewController:actViewController animated:YES completion:NULL];
-
 }
 %end
