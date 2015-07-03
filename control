@@ -1,0 +1,9 @@
+Package: com.imokhles.sharetweak
+Name: ShareTweak
+Depends: mobilesubstrate
+Version: 1.0
+Architecture: iphoneos-arm
+Description: Share tweaks information with others
+Maintainer: iMokhles
+Author: iMokhles
+Section: Tweaks
