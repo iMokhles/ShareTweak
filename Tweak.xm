@@ -76,6 +76,12 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
 
 // got it from CyteWebViewController class
 - (UIBarButtonItem *) customButton {
+	Package *package = MSHookIvar<Package *>(self, "package_");
+	BOOL commercial = [package isCommercial];
+
+	if (commercial && [package uninstalled]) 
+		return %orig;
+		
 	UIBarButtonItem *origRightButton; // = MSHookIvar<UIBarButtonItem *>(self, "button_");
 	origRightButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(customButtonClicked)];
 	return origRightButton;
@@ -90,6 +96,10 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
 	BOOL commercial = MSHookIvar<BOOL>(self, "commercial_");
 
 	commercial = [package isCommercial];
+
+	if (commercial && [package uninstalled]) 
+		return %orig;
+
 	// got it from CYPackageController implementation
 	NSString *origButtonTitle;
 	if (package != nil) {
@@ -122,8 +132,7 @@ static inline NSString *UCLocalizeEx(NSString *key, NSString *value = nil) {
                       } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Share"]) {
                           [self shareTweakInfo:[NSArray arrayWithObjects:shareText, depictionURL, package.icon, nil]];
                       } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Share URL"]) {
-                      	  shareText = [NSString stringWithFormat:@"#Share_Tweak Tweak Name: %@\nDepiction:", package.name];
-                          [self shareTweakInfo:[NSArray arrayWithObjects:shareText, depictionURL, package.icon, nil]];
+                          [self shareTweakInfo:[NSArray arrayWithObjects:depictionURL, nil]];
                       } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:origButtonTitle]) {
                           [self _customButtonClicked];
                       }
